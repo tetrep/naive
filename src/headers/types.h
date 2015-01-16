@@ -15,6 +15,7 @@ typedef enum {
   lextoken_expr_open,
   lextoken_expr_close,
   lextoken_str_delim,
+  lextoken_str_esc,
   lextoken_eoe,
 } lextoken_type;
 
@@ -23,6 +24,13 @@ struct lextoken {
   char val[MAX_TOKEN_SIZE];
   size_t used;
   size_t allocated;
+};
+
+struct lex_state {
+  char c;
+  lextoken_type ltt;
+  char in_str;
+  char in_str_esc;
 };
 
 struct expression {
@@ -38,7 +46,7 @@ struct expression_stack_node {
 
 struct expression_stack {
   struct expression_stack_node *back;
-  unsigned int size;
+  size_t size;
 };
 
 #endif

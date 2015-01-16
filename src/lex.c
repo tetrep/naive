@@ -9,8 +9,12 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
   // zero empty token's val
   memset(_empty_token.val, 0, sizeof(_empty_token.val));
 
+  // init state
+  struct lex_state state_p[1];
+  state_p->c = state_p->in_str = state_p->in_str_esc = 0;
+  state_p->ltt = lextoken_null;
+
   ssize_t bytes_read = 0;
-  lextoken_type tmp_type;
   struct expression expr = _empty_expression;
   struct lextoken *tok_p = NULL;
 
@@ -24,7 +28,8 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
   // fill read buffer and lex it, until EOF
   while (0 != (bytes_read = buffered_read(fd, read_buffer, read_buffer_size))) {
     for (ssize_t i = 0; i < bytes_read; i++) {
-      switch ((tmp_type = lex_char(read_buffer[i]))) {
+      state_p->c = read_buffer[i];
+      switch (state_p->ltt = lex_char(state_p)) {
 
         case lextoken_nop:
           // NOP
@@ -50,14 +55,14 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
         case lextoken_operator:
         case lextoken_symbol:
         case lextoken_int:
-          build_token(tok_p, tmp_type, read_buffer[i]);
+          build_token(tok_p, state_p);
           break;
 
         case lextoken_str_delim:
           break;
 
         case lextoken_tok_delim:
-        // time for a new token
+          // time for a new token
           if (tok_p ==  &(expr.op)) {
             tok_p = &(expr.lhs);
           } else if (tok_p == &(expr.lhs)) {
@@ -81,38 +86,45 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
   return 0;
 }
 
-void build_token(struct lextoken* lt, lextoken_type ltt, char c) {
-  if (lextoken_null == lt->type) {
+void build_token(struct lextoken* lt, struct lex_state *state_p) {
+  if (lextoken_null == lt->type || lextoken_nop == lt->type) {
     // we don't have a type, so adopt whatever we've been given
-    lt->type = ltt;
+    lt->type = state_p->ltt;
   }
 
   switch (lt->type) {
+    // dat nop
+    case lextoken_nop:
+      break;
+
     case lextoken_operator:
       // only build the token if it's the same type
-      if (lt->type == ltt) {
+      if (lt->type == state_p->ltt) {
         // totes memory manage
-        lt->val[lt->used] = c;
+        lt->val[lt->used] = state_p->c;
         lt->used += 1;
       }
       break;
+
     case lextoken_symbol:
       // only build the token if it's the same type
-      if (lt->type == ltt) {
+      if (lt->type == state_p->ltt) {
         // totes memory manage
-        lt->val[lt->used] = c;
+        lt->val[lt->used] = state_p->c;
         lt->used += 1;
       }
       break;
+
     case lextoken_int:
       // only build the token if it's the same type
-      if (lt->type == ltt) {
+      if (lt->type == state_p->ltt) {
         // totes memory manage
         int64_t *ptr = (int64_t*) lt->val;
         *ptr *= 10;
-        *ptr += c - 48;
+        *ptr += state_p->c - 48;
       }
       break;
+
     case lextoken_expr_open:
     case lextoken_expr_close:
     case lextoken_str_delim:
@@ -138,13 +150,17 @@ struct lextoken close_expr(struct expression *expr_p) {
   return exp;
 }
 
-lextoken_type lex_char (char c) {
+lextoken_type lex_char (struct lex_state *state_p) {
   lextoken_type ltt;
-  switch (c) {
-    case ' ':
-      ltt = lextoken_nop;
+
+  switch (state_p->c) {
+    case '\\':
+      ltt = lextoken_str_esc;
       break;
-    case ',':
+    case '"':
+      ltt = lextoken_str_delim;
+      break;
+    case ' ':
       ltt = lextoken_tok_delim;
       break;
     case '[':
@@ -152,9 +168,6 @@ lextoken_type lex_char (char c) {
       break;
     case ']':
       ltt = lextoken_expr_close;
-      break;
-    case '"':
-      ltt = lextoken_str_delim;
       break;
     case '+':
     case '-':
@@ -205,7 +218,47 @@ lextoken_type lex_char (char c) {
       ltt = lextoken_symbol;
       break;
     default:
+      // no matches
       ltt = lextoken_eoe;
+  }
+
+  // str logic
+  ltt = lex_str_logic(ltt, state_p);
+
+  return ltt;
+}
+
+lextoken_type lex_str_logic (lextoken_type ltt, struct lex_state *state_p) {
+  // don't do anything if we're not in a str
+  if (state_p->in_str) {
+    // check if we're the escapee
+    if (state_p->in_str_esc) {
+      ltt = lextoken_symbol;
+      state_p->in_str_esc = 0;
+    }
+    // check if we're the escaper
+    else if (lextoken_str_esc == ltt) {
+      ltt = lextoken_nop;
+      state_p->in_str_esc = 1;
+    }
+    // check if we're ending the str
+    else if (lextoken_str_delim == ltt) {
+      ltt = lextoken_nop;
+      state_p->in_str = 0;
+    }
+    // nothing special
+    else {
+      ltt = lextoken_symbol;
+    }
+  }
+  // are we starting a string?
+  else if (lextoken_str_delim == ltt) {
+    ltt = lextoken_nop;
+    state_p->in_str = 1;
+  }
+  // str esc is just symbol outside a str
+  else if (lextoken_str_esc == ltt) {
+    ltt = lextoken_symbol;
   }
 
   return ltt;
