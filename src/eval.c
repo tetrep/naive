@@ -3,6 +3,18 @@
 struct lextoken eval_expr (struct expression expr) {
   struct lextoken tok = _empty_token;
   if (lextoken_operator == expr.op.type) {
+
+    // match against hex operator
+    if (btrstr_cmp(&_hex_expr, &expr.op)) {
+      hex_str(&expr);
+    }
+    // match agains b64 operator
+    else if (btrstr_cmp(&_b64_expr, &expr.op)) {
+      b64_str(&expr);
+    }
+
+
+    // TODO: deprectated, should all be compartmentalized into functions
     switch (expr.op.val[0]) {
       case '+':
         if (expr.lhs.type == expr.rhs.type) {
@@ -92,4 +104,10 @@ void print_tok(struct lextoken tok) {
         break;
     }
   }
+}
+
+void hex_str (struct expression *expr_p) {
+}
+
+void b64_str (struct expression *expr_p) {
 }

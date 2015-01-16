@@ -11,3 +11,5 @@ heh.... EOF to kill repl.
 [ ] b64 string operator
 [ ] refactor to better reflect repl nature of language
 [ ] make language spec
+
+refactor probably gonna hit soon as standard library is forming
