@@ -106,8 +106,32 @@ void print_tok(struct lextoken tok) {
   }
 }
 
+void alphabet_str (struct expression *expr_p, struct lextoken *rhs_p) {
+  // check if we're encoding
+  if (btrstr_cmp("e", &(expr->lhs))) {
+    encode_alphabet(&(expr->rhs), rhs_p);
+  }
+  // check if we're decoding
+  else if (btrstr_cmp("d", &(expr->lhs))) {
+    decode_alphabet(&(expr->rhs), rhs_p);
+  }
+  // we don't need to do anything for failure cases
+}
+
+void encode_alphabet (struct lextoken *lhs_p, struct lextoken *rhs_p) {
+}
+
+void decode_alphabet (struct lextoken *lhs_p, struct lextoken *rhs_p) {
+}
+
 void hex_str (struct expression *expr_p) {
+  static lextoken rhs = _empty_token;
+  rhs.val = "0123456789ABCDEF";
+  rhs.
+  alphabet_str(expr_p, hex_alphabet);
 }
 
 void b64_str (struct expression *expr_p) {
+  static char *b64_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  alphabet_str(expr_p, b64_alphabet);
 }
