@@ -11,6 +11,6 @@
 #include "ast.h"
 #include "eval.h"
 #include "lex.h"
-#include "btrstr.h"
+#include "util.h"
 
 #endif

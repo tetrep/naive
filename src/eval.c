@@ -119,23 +119,39 @@ void alphabet_str (struct expression *expr_p, struct lextoken *rhs_p) {
 }
 
 void encode_alphabet (struct lextoken *lhs_p, struct lextoken *rhs_p) {
-  // TODO radix shits
   // lhs is gonna be raw binary
   // rhs is gonna be alphabet
   // padding, if applicable, will need to be handled by the calling function
+
+  // TODO lcm to find length we need
+  // between 2^n and rhs_p->used^k
+  struct lextoken lt_ret = _empty_token;
+  lt_ret.allocated = MAX_TOKEN_SIZE;
+  lt_ret.
 }
 
 void decode_alphabet (struct lextoken *lhs_p, struct lextoken *rhs_p) {
 }
 
-void hex_str (struct expression *expr_p) {
-  static lextoken rhs = _empty_token;
-  rhs.val = "0123456789ABCDEF";
-  rhs.
-  alphabet_str(expr_p, hex_alphabet);
+void hex_expr_to_str (struct expression *expr_p) {
+  hex_token_to_str(&(expr_p->lhs));
 }
 
-void b64_str (struct expression *expr_p) {
-  static char *b64_alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  alphabet_str(expr_p, b64_alphabet);
+void hex_token_to_str (struct lextoken *lex_p) {
+  static lextoken lex_hex = _empty_token;
+  lex_hex.val = "0123456789ABCDEF";
+  lex_hex.used = strlen(rhs.val);
+  alphabet_str(lex_p, &(lex_hex));
+}
+
+void b64_expr_to_str (struct expression *expr_p) {
+  b64_token_to_str(&(expr_p->lhs));
+}
+
+void b64_token_to_str (struct lextoken *lex_p) {
+  static lextoken lex_b64 = _empty_token;
+  lex_hex.val = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  lex_hex.used = strlen(lex_hex.val);
+
+  alphabet_str(lex_p, b64_alphabet);
 }
