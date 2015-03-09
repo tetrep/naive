@@ -119,6 +119,10 @@ void alphabet_str (struct expression *expr_p, struct lextoken *rhs_p) {
 }
 
 void encode_alphabet (struct lextoken *lhs_p, struct lextoken *rhs_p) {
+  // TODO radix shits
+  // lhs is gonna be raw binary
+  // rhs is gonna be alphabet
+  // padding, if applicable, will need to be handled by the calling function
 }
 
 void decode_alphabet (struct lextoken *lhs_p, struct lextoken *rhs_p) {
