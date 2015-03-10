@@ -39,12 +39,20 @@ char btrstr_cpy (struct lextoken *src_p, struct lextoken *dest_p) {
   return 0;
 }
 
-char btrstr_make (struct lextoken *dest_p, char *cstr) {
+char btrstr_make (struct lextoken *dest_p, char *cstr, size_t cstr_len) {
+
   // make sure we can fit
-  if (lex_target->allocated < strlen(cstr)) {
+  if (lex_target->allocated < cstr_len) {
     // TODO check for errors when they can exist
-    btrstr_calloc(dest_p, strlen(cstr));
+    btrstr_calloc(dest_p, cstr_len);
   }
+
+  // we fit, so simply copy
+  // TODO can this error? (osx) man page says: "The memmove() function returns the original value of dst."
+  memmove(dest_p->val, cstr, cstr_len);
+
+  // update size
+  dest_p->used = cstr_len;
 
   return 0;
 }
