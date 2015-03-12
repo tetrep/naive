@@ -57,7 +57,7 @@ char btrstr_make (struct lextoken *dest_p, char *cstr, size_t cstr_len) {
   return 0;
 }
 
-char btrstr_calloc(struct lextoken *dest_p, size_t size) {
+char btrstr_calloc (struct lextoken *dest_p, size_t size) {
   // free our dest, if needed
   if (NULL != dest_p->val) {
     free(dest_p->val);
@@ -78,4 +78,35 @@ char btrstr_calloc(struct lextoken *dest_p, size_t size) {
   dest_p->allocated = size;
 
   return 0;
+}
+
+struct lextoken make_allocated_token (size_t size) {
+  struct lextoken allocated_token = make_empty_token();
+
+  // do we have anything we need to allocate?
+  if (0 != size) {
+    // TODO error handling once available
+    btrstr_calloc(&allocated_token, size);
+  }
+
+  return allocated_token;
+}
+
+struct lextoken make_empty_token () {
+  struct lextoken empty_token;
+  empty_token.type = lextoken_null;
+  empty_token.val = NULL;
+  empty_token.used = 0;
+  empty_token.allocated = 0;
+
+  return empty_token;
+}
+
+struct expression make_empty_expression () {
+  struct expression empty_expression;
+  empty_expression.op = make_empty_token();
+  empty_expression.lhs = make_empty_token();
+  empty_expression.rhs = make_empty_token();
+
+  return empty_expression;
 }
