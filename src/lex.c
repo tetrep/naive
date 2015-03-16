@@ -2,20 +2,13 @@
 
 // lexes from a given file descriptor until EOF
 int lex (int fd, char *read_buffer, size_t read_buffer_size) {
-  // init empties
-  _empty_token.type = lextoken_null; /*_empty_token.val = NULL;*/ _empty_token.used = 0; _empty_token.allocated = MAX_TOKEN_SIZE;
-  _empty_expression.op = _empty_expression.lhs = _empty_expression.rhs = _empty_token;
-
-  // zero empty token's val
-  memset(_empty_token.val, 0, sizeof(_empty_token.val));
-
   // init state
   struct lex_state state_p[1];
   state_p->c = state_p->in_str = state_p->in_str_esc = 0;
   state_p->ltt = lextoken_null;
 
   ssize_t bytes_read = 0;
-  struct expression expr = _empty_expression;
+  struct expression expr = alloc_empty_expression();
   struct lextoken *tok_p = NULL;
 
   // we need to save a stack of which part of the expression we're parsing
@@ -77,7 +70,7 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
           eval_print_expr(expr);
           // new expression!
           tok_p = &(expr.op);
-          expr = _empty_expression;
+          expr = alloc_empty_expression();
       }
     }
   }
@@ -138,7 +131,7 @@ void build_token(struct lextoken* lt, struct lex_state *state_p) {
 // save expr to stack and then wipe it
 void open_expr(struct expression *expr_p) {
   push_expr(*expr_p);
-  *(expr_p) = _empty_expression;
+  *(expr_p) = alloc_empty_expression();
 }
 
 // eval expr, overwrite it with expr popped from stack

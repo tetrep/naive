@@ -1,7 +1,7 @@
 #include "headers/headers.h"
 
 struct lextoken eval_expr (struct expression expr) {
-  struct lextoken tok = _empty_token;
+  struct lextoken tok = make_empty_token();
   if (lextoken_operator == expr.op.type) {
 
     // match against hex operator
@@ -125,7 +125,7 @@ void encode_alphabet (struct lextoken *lhs_p, struct lextoken *rhs_p) {
 
   // TODO lcm to find length we need
   // between 2^n and rhs_p->used^k
-  struct lextoken lt_ret = _empty_token;
+  struct lextoken lt_ret = make_empty_token();;
   lt_ret.allocated = MAX_TOKEN_SIZE;
   lt_ret.
 }
@@ -137,21 +137,26 @@ void hex_expr_to_str (struct expression *expr_p) {
   hex_token_to_str(&(expr_p->lhs));
 }
 
+#define HEX_ALPHABET "0123456789ABCDEF"
 void hex_token_to_str (struct lextoken *lex_p) {
-  static lextoken lex_hex = _empty_token;
-  lex_hex.val = "0123456789ABCDEF";
-  lex_hex.used = strlen(rhs.val);
+  static lextoken lex_hex = make_empty_token();
+  btrstr_make(&lex_hex, HEX_ALPHABET, strlen(HEX_ALPHABET));
+
   alphabet_str(lex_p, &(lex_hex));
+
+  free_token(lex_hex);
 }
 
 void b64_expr_to_str (struct expression *expr_p) {
   b64_token_to_str(&(expr_p->lhs));
 }
 
+#define B64_ALPHABET "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 void b64_token_to_str (struct lextoken *lex_p) {
-  static lextoken lex_b64 = _empty_token;
-  lex_hex.val = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  lex_hex.used = strlen(lex_hex.val);
+  static lextoken lex_b64 = make_empty_token();
+  btrstr_make(&lex_b64, B64_ALPHABET, strlen(B64_ALPHABET));
 
   alphabet_str(lex_p, b64_alphabet);
+
+  free_token(lex_b64);
 }

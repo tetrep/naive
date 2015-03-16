@@ -80,7 +80,7 @@ char btrstr_calloc (struct lextoken *dest_p, size_t size) {
   return 0;
 }
 
-struct lextoken make_allocated_token (size_t size) {
+struct lextoken alloc_sized_token (size_t size) {
   struct lextoken allocated_token = make_empty_token();
 
   // do we have anything we need to allocate?
@@ -102,11 +102,22 @@ struct lextoken make_empty_token () {
   return empty_token;
 }
 
-struct expression make_empty_expression () {
+struct expression alloc_empty_expression () {
   struct expression empty_expression;
   empty_expression.op = make_empty_token();
   empty_expression.lhs = make_empty_token();
   empty_expression.rhs = make_empty_token();
 
   return empty_expression;
+}
+
+char free_token (struct lextoken token) {
+  if (NULL != token.val) {
+    free(token.val);
+  }
+
+  token.type = lextoken_null;
+  token.used = 0;
+  token.allocated = 0;
+  return 0;
 }
