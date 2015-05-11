@@ -10,5 +10,6 @@ struct expression_stack _expr_stack;
 
 void push_expr(struct expression expr);
 struct expression pop_expr();
+struct expression_stac_node new_expression_stack_node(struct expression expr);
 
 #endif

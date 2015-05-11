@@ -1,11 +1,10 @@
 #include "headers/headers.h"
 
 void push_expr(struct expression expr) {
-  // make a new node
-  struct expression_stack_node node;
-  node.expr = expr;
-  node.prev = _expr_stack.back;
+  // create a new node
+  struct expression_stack_node node = new_expression_stack_node(expr);
   // save the new node into the list of nodes
+  node.prev = _expr_stack.back;
   _expr_stack_node_list[_expr_stack.size] = node;
 
   // add the node to the stack
@@ -24,4 +23,12 @@ struct expression pop_expr() {
   _expr_stack.size -= 1;
 
   return expr;
+}
+
+struct expression_stack_node new_expression_stack_node (struct expression expr) {
+  struct expression_stack_node node;
+
+  node.expr = expr;
+
+  return node;
 }

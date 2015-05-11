@@ -18,8 +18,9 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
   // parse tokens as operator, then lhs, then rhs
   tok_p = &(expr.op);
 
+  // TODO cases should simply call functions
   // fill read buffer and lex it, until EOF
-  while (0 != (bytes_read = buffered_read(fd, read_buffer, read_buffer_size))) {
+  while (0 < (bytes_read = buffered_read(fd, read_buffer, read_buffer_size))) {
     for (ssize_t i = 0; i < bytes_read; i++) {
       state_p->c = read_buffer[i];
       switch (state_p->ltt = lex_char(state_p)) {
@@ -31,8 +32,7 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
         case lextoken_expr_open:
           tok_p_stack[expr_depth] = tok_p;
           expr_depth += 1;
-          open_expr(&expr);
-          tok_p = &(expr.op);
+          *tok_p = open_expr(&expr);
           break;
 
         case lextoken_expr_close:
@@ -41,6 +41,8 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
             tok_p = tok_p_stack[expr_depth];
             (*tok_p) = close_expr(&expr);
           } else {
+            // start reading the operator for a new expr, this allows us to
+            // arbitrarily end an expression with the lextoken_expr_close symbol
             tok_p = &(expr.op);
           }
           break;
@@ -79,40 +81,36 @@ int lex (int fd, char *read_buffer, size_t read_buffer_size) {
   return 0;
 }
 
-void build_token(struct lextoken* lt, struct lex_state *state_p) {
-  if (lextoken_null == lt->type || lextoken_nop == lt->type) {
+void build_token(struct lextoken* lt_p, struct lex_state *state_p) {
+  if (lextoken_null == lt_p->type || lextoken_nop == lt_p->type) {
     // we don't have a type, so adopt whatever we've been given
-    lt->type = state_p->ltt;
+    lt_p->type = state_p->ltt;
   }
 
-  switch (lt->type) {
+  switch (lt_p->type) {
     // dat nop
     case lextoken_nop:
       break;
 
     case lextoken_operator:
       // only build the token if it's the same type
-      if (lt->type == state_p->ltt) {
-        // totes memory manage
-        lt->val[lt->used] = state_p->c;
-        lt->used += 1;
+      if (lt_p->type == state_p->ltt) {
+        lextoken_append_char(lt_p, state_p->c);
       }
       break;
 
     case lextoken_symbol:
       // only build the token if it's the same type
-      if (lt->type == state_p->ltt) {
-        // totes memory manage
-        lt->val[lt->used] = state_p->c;
-        lt->used += 1;
+      if (lt_p->type == state_p->ltt) {
+        lextoken_append_char(lt_p, state_p->c);
       }
       break;
 
     case lextoken_int:
       // only build the token if it's the same type
-      if (lt->type == state_p->ltt) {
+      if (lt_p->type == state_p->ltt) {
         // totes memory manage
-        int64_t *ptr = (int64_t*) lt->val;
+        int64_t *ptr = (int64_t*) lt_p->val;
         *ptr *= 10;
         *ptr += state_p->c - 48;
       }
@@ -129,16 +127,17 @@ void build_token(struct lextoken* lt, struct lex_state *state_p) {
 }
 
 // save expr to stack and then wipe it
-void open_expr(struct expression *expr_p) {
+struct *expression open_expr(struct expression *expr_p) {
   push_expr(*expr_p);
-  *(expr_p) = alloc_empty_expression();
+
+  return alloc_empty_expression();
 }
 
 // eval expr, overwrite it with expr popped from stack
 // and return value of eval
 struct lextoken close_expr(struct expression *expr_p) {
   struct lextoken exp = eval_expr(*expr_p);
-  (*expr_p) = pop_expr();
+  *expr_p = pop_expr();
 
   return exp;
 }

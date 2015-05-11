@@ -21,7 +21,7 @@ typedef enum {
 
 struct lextoken {
   lextoken_type type;
-  char val[MAX_TOKEN_SIZE];
+  char *val;
   size_t used;
   size_t allocated;
 };

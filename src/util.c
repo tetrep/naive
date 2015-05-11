@@ -39,6 +39,17 @@ char btrstr_cpy (struct lextoken *src_p, struct lextoken *dest_p) {
   return 0;
 }
 
+char btrstr_append (struct lextoken *src_p, char c) {
+  // check size_t overflow
+  if (src_p->used > (src_p->allocated + src_p->used)) {
+    // too big!
+    fprintf(stderr, "error: lextoken too large to append character");
+    return -1;
+  }
+  if (src_p->allocated) {
+  }
+}
+
 char btrstr_make (struct lextoken *dest_p, char *cstr, size_t cstr_len) {
 
   // make sure we can fit
@@ -102,6 +113,9 @@ struct lextoken make_empty_token () {
   return empty_token;
 }
 
+void lextoken lextoken_realloc (struct lextoken *lt_p, size_t new_size) {
+}
+
 struct expression alloc_empty_expression () {
   struct expression empty_expression;
   empty_expression.op = make_empty_token();
@@ -120,4 +134,16 @@ char free_token (struct lextoken token) {
   token.used = 0;
   token.allocated = 0;
   return 0;
+}
+
+void lextoken_append_char (struct lextoken *lt_p, char c) {
+  if (lt_p) {
+    // make sure we can fit it
+    if (lt_p->used == lt_p->allocated) {
+      lt_p = lextoken_realloc(lt_p, lt_p->allocated*2);
+    }
+
+    lt_p->val[lt_p->used] = c;
+    lt_p->used += 1;
+  }
 }

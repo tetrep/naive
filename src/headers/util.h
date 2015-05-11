@@ -14,4 +14,6 @@ struct expression alloc_empty_expression();
 
 char free_token(struct lextoken token);
 char free_expression(struct expression expr);
+
+void lextoken_append_char(char c);
 #endif
